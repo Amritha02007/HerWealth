@@ -2,83 +2,180 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Expense & Savings Calculator</title>
+    <title>Income & Expense Tracker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 600px;
-            margin: 50px auto;
-            padding: 20px;
-            background-color: #f5f5f5;
+            background-color: #f9f9f9;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 40px;
         }
-        header, footer {
+
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            width: 420px;
+        }
+
+        h2 {
             text-align: center;
         }
-        input, button {
-            padding: 10px;
-            margin: 5px 0;
+
+        input, select, button {
             width: 100%;
-            box-sizing: border-box;
+            padding: 10px;
+            margin: 5px 0 15px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
         }
-        #result {
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 15px;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        .result {
             margin-top: 15px;
             font-weight: bold;
         }
+
         .warning {
             color: red;
         }
+
         .safe {
             color: green;
         }
     </style>
 </head>
+
 <body>
 
-    <header>
-        <h1>Expense & Savings Calculator</h1>
-        <p>Check your monthly savings and get a warning if too low</p>
-    </header>
+<div class="container">
+    <h2>Income & Expense Tracker</h2>
 
-    <section>
-        <label for="income">Monthly Income:</label>
-        <input type="number" id="income" placeholder="Enter your income">
+    <!-- Income Section -->
+    <input type="number" id="income" placeholder="Enter Monthly Income" min="0">
 
-        <label for="expenses">Total Monthly Expenses:</label>
-        <input type="number" id="expenses" placeholder="Enter total expenses">
+    <!-- Expense Section -->
+    <input type="text" id="expenseName" placeholder="Expense Name">
+    <input type="number" id="expenseAmount" placeholder="Amount" min="0">
 
-        <button onclick="calculateSavings()">Calculate Savings</button>
+    <select id="expenseCategory">
+        <option value="">Select Category</option>
+        <option value="Food">Food</option>
+        <option value="Transport">Transport</option>
+        <option value="Entertainment">Entertainment</option>
+        <option value="Bills">Bills</option>
+        <option value="Others">Others</option>
+    </select>
 
-        <p id="result"></p>
-    </section>
+    <button onclick="addExpense()">Add Expense</button>
 
-    <footer>
-        <p>© 2026 Expense & Savings Calculator</p>
-    </footer>
+    <!-- Expense Table -->
+    <table id="expenseTable">
+        <thead>
+            <tr>
+                <th>Expense</th>
+                <th>Category</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
 
-    <script>
-        function calculateSavings() {
-            const income = parseFloat(document.getElementById('income').value);
-            const expenses = parseFloat(document.getElementById('expenses').value);
-            const result = document.getElementById('result');
+    <div class="result" id="totalAmount">Total Expense: $0</div>
+    <div class="result" id="savingsResult"></div>
 
-            if (isNaN(income) || isNaN(expenses)) {
-                result.textContent = "Please enter valid numbers for income and expenses.";
-                result.className = 'warning';
-                return;
-            }
+</div>
 
-            const savings = income - expenses;
-            const savingsPercentage = (savings / income) * 100;
+<script>
 
-            if (savingsPercentage < 20) {
-                result.textContent = `Warning! Your savings are only ${savingsPercentage.toFixed(2)}% of your income. Try to save more.`;
-                result.className = 'warning';
-            } else {
-                result.textContent = `Good job! Your savings are ${savingsPercentage.toFixed(2)}% of your income.`;
-                result.className = 'safe';
-            }
-        }
-    </script>
+let totalExpense = 0;
+
+function addExpense() {
+    const income = parseFloat(document.getElementById('income').value);
+    const name = document.getElementById('expenseName').value;
+    const amount = parseFloat(document.getElementById('expenseAmount').value);
+    const category = document.getElementById('expenseCategory').value;
+
+    if (isNaN(income) || income <= 0) {
+        alert("Please enter valid income first.");
+        return;
+    }
+
+    if (name === "" || isNaN(amount) || amount <= 0 || category === "") {
+        alert("Please enter valid expense details.");
+        return;
+    }
+
+    // Add row to table
+    const tableBody = document.getElementById('expenseTable')
+        .getElementsByTagName('tbody')[0];
+
+    const newRow = tableBody.insertRow();
+    newRow.insertCell(0).textContent = name;
+    newRow.insertCell(1).textContent = category;
+    newRow.insertCell(2).textContent = "$" + amount.toFixed(2);
+
+    // Update total expense
+    totalExpense += amount;
+    document.getElementById('totalAmount').textContent =
+        "Total Expense: $" + totalExpense.toFixed(2);
+
+    // Calculate Savings
+    const savings = income - totalExpense;
+    const savingsPercentage = (savings / income) * 100;
+    const savingsResult = document.getElementById('savingsResult');
+
+    if (savings < 0) {
+        savingsResult.textContent =
+            "Warning! Your expenses exceed your income.";
+        savingsResult.className = "result warning";
+    }
+    else if (savingsPercentage < 20) {
+        savingsResult.textContent =
+            "Warning! Savings are only " + savingsPercentage.toFixed(2) + "% of income.";
+        savingsResult.className = "result warning";
+    }
+    else {
+        savingsResult.textContent =
+            "Good! Savings: $" + savings.toFixed(2) +
+            " (" + savingsPercentage.toFixed(2) + "% of income)";
+        savingsResult.className = "result safe";
+    }
+
+    // Clear inputs
+    document.getElementById('expenseName').value = "";
+    document.getElementById('expenseAmount').value = "";
+    document.getElementById('expenseCategory').value = "";
+}
+
+</script>
 
 </body>
 </html>
